@@ -1,5 +1,6 @@
 from datetime import *
 import random
+import json
 
 # This file contains code responsible for generating schedules
 
@@ -58,24 +59,54 @@ def generate_game_days(start_date):
         
 game_days = generate_game_days(datetime(2018, 10, 6))
 
+# Converts certain objects to JSON for serialization
+def json_default(o):
+    if isinstance(o, schedule):
+        str_sched = {}
+        for key in o.sched.keys():
+            str_sched[str(key)] = o.sched[key]
+        return str_sched
+    
+    if isinstance(o, game):
+        return o.__dict__
+
+#Represents a schedule
+class schedule:
+    def __init__(self):
+        self.sched = {}
+
+    def add_game(self, date, game):
+        if date in self.sched.keys():
+            self.sched[date].append(game)
+        else:
+            self.sched[date] = [game]
+
+    def __str__(self):
+        string = ""
+        for day in self.sched:
+            string += str(day) + "\n"
+            for game in self.sched[day]:
+                string += "\t" + str(game) + "\n"
+        return string
+
 # Represents a game
-class game:
+class game():
     possible_game_times = [13, 16, 20] # Possible hours of the day
     possible_broadcasters = ["NBC", "CBS", "FOX"]
     
-    def __init__(self, home_team, away_team, datetime, broadcaster):
+    def __init__(self, home_team, away_team, game_time, broadcaster):
         self.home_team = home_team
         self.away_team = away_team
-        self.datetime = datetime
+        self.game_time = game_time
         self.broadcaster = broadcaster
 
     def __str__(self):
         return self.home_team + ", " + self.away_team \
-            + ", " + str(self.datetime) + ", " + self.broadcaster
+            + ", " + str(self.game_time) + ", " + self.broadcaster
 
 # Generates a random schedule adhering to the following rules:
 def generate_random_schedule(game_days, teams):
-    schedule = {}
+    nfl_sched = schedule()
     teams = list(nfl_teams) # List of teams to match
     
     for day in game_days:
@@ -85,23 +116,13 @@ def generate_random_schedule(game_days, teams):
             home_team = teams[i]
             away_team = teams[i + 1]
             broadcaster = random.choice(game.possible_broadcasters)
-
             game_time = random.choice(game.possible_game_times)
-            game_datetime = day
-            game_datetime += timedelta(hours=game_time)
 
-            games.append(game(home_team, away_team, game_datetime, broadcaster))
+            games.append(game(home_team, away_team, game_time, broadcaster))
+            nfl_sched.add_game(day, game(home_team, away_team, game_time, broadcaster))
 
-        schedule[day] = games
+    return nfl_sched
 
-    return schedule
-
-# For debugging
-def print_schedule(schedule):
-    for day in schedule:
-        print day
-        for game in schedule[day]:
-            print "\t" + str(game)
-
-schedule = generate_random_schedule(game_days, nfl_teams)
-print_schedule(schedule)
+# Sample on how to call methods
+#nfl_schedule = generate_random_schedule(game_days, nfl_teams)
+#json.dumps(nfl_schedule, default=json_default)

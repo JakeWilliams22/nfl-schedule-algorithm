@@ -125,4 +125,4 @@ def generate_random_schedule(game_days, teams):
 
 # Sample on how to call methods
 #nfl_schedule = generate_random_schedule(game_days, nfl_teams)
-#json.dumps(nfl_schedule, default=json_default)
+#print(json.dumps(nfl_schedule, default=json_default))

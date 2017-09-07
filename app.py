@@ -1,6 +1,6 @@
 import os
 from flask import Flask
-from flas_cors import CORS
+from flask_cors import CORS
 
 from src.schedule import *
 CORS(app)

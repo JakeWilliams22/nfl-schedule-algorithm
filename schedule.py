@@ -1,6 +1,7 @@
 from datetime import *
 import random
 import json
+import pandas as pd
 
 # This file contains code responsible for generating schedules
 
@@ -52,7 +53,7 @@ nfl_teams = afc_teams + nfc_teams
 
 def generate_game_days(start_date):
     game_days = []
-    for i in range(16):
+    for i in range(1):
         game_days.append(start_date)
         start_date += timedelta(weeks=1)
     return game_days
@@ -110,16 +111,18 @@ def generate_random_schedule(game_days, teams):
     teams = list(nfl_teams) # List of teams to match
     
     for day in game_days:
+        print(type(day))
         games = []
         random.shuffle(teams)
+        home_team = teams[0]
         for i in range(0, len(teams), 2):
-            home_team = teams[i]
             away_team = teams[i + 1]
             broadcaster = random.choice(game.possible_broadcasters)
             game_time = random.choice(game.possible_game_times)
 
             games.append(game(home_team, away_team, game_time, broadcaster))
             nfl_sched.add_game(day, game(home_team, away_team, game_time, broadcaster))
+
 
     return nfl_sched
 

@@ -3,8 +3,6 @@ from flask import Flask
 from flask_cors import CORS
 
 from src.schedule import *
-from src.schedule_optimizer import *
-from src.schedule_score import *
 
 app = Flask(__name__)
 CORS(app)
@@ -12,11 +10,6 @@ CORS(app)
 @app.route('/')
 def hello():
     return 'Hello World!'
-
-@app.route('/generate-optimized-schedule')
-def generate_optimized_schedule():
-    nfl_schedule = optimize_schedule()
-    return json.dumps(nfl_schedule, default=json_default)
 
 @app.route('/generate-schedule')
 def generate_schedule():

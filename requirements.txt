@@ -1,2 +1,7 @@
 Flask
 flask-cors
+scipy
+peakutils
+numpy
+schedule
+functools

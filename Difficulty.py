@@ -1,6 +1,5 @@
 import csv
 import pandas as pd
-import xlrd
 import math
 import schedule as schedule
 from datetime import *

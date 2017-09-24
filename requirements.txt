@@ -4,4 +4,3 @@ scipy
 peakutils
 numpy
 schedule
-functools

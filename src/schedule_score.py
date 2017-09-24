@@ -1,4 +1,4 @@
-from functools import reduce
+# from functools import reduce
 import csv
 import os.path
 import numpy
@@ -35,7 +35,8 @@ def score_schedule(sched):
               difficulty_score(sched)]
 
     # Return average of scores
-    return reduce(lambda x, y: x + y, scores) / len(scores)
+    # return reduce(lambda x, y: x + y, scores) / len(scores)
+    return 1;
 
 def travel_score(sched):
     return 0

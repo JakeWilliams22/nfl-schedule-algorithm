@@ -51,5 +51,5 @@ def schedule_cost(sched):
     return 1 - score_schedule(sched.item(0))
 
 # DEBUG
-#nfl_schedule = optimize_schedule()
-#print(nfl_schedule)
+# nfl_schedule = optimize_schedule()
+# print(nfl_schedule)

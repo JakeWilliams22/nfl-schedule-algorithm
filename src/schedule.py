@@ -1,6 +1,10 @@
 from datetime import *
 import random
 import json
+import csv
+import os.path
+import numpy
+from .schedule_score import travel_score
 
 # This file contains code responsible for generating schedules
 
@@ -62,10 +66,14 @@ game_days = generate_game_days(datetime(2018, 10, 6))
 # Converts certain objects to JSON for serialization
 def json_default(o):
     if isinstance(o, Schedule):
+        output = {}
+        output["difficulty_score"] = o.difficulty_cost
+        output["travel_score"] = o.travel_cost
         str_sched = {}
         for key in o.sched.keys():
             str_sched[str(key)] = o.sched[key]
-        return str_sched
+        output["sched"] = str_sched
+        return output
     
     if isinstance(o, Game):
         return o.__dict__
@@ -75,6 +83,8 @@ class Schedule:
     def __init__(self):
         self.sched = {}
         self.opponentList = None
+        self.difficulty_score = 0
+        self.travel_score = 0
 
     def add_game(self, date, game):
         if date in self.sched.keys():
@@ -106,6 +116,44 @@ class Schedule:
                 self.opponentList[home].add(away)
                 self.opponentList[away].add(home)
         
+    def calculate_cost(self):
+        self.difficulty_cost = self.calc_difficulty_cost()
+        self.travel_cost = self.calc_travel_cost()
+
+        return (self.difficulty_cost + self.travel_cost) / 2.0
+
+    # Closer to 0 is better
+    def calc_travel_cost(self):
+        return travel_score(self)
+
+    # Closer to 0 is better
+    # Returns the score of the difficulty of the schedule
+    # Calculated by using the standard deviation of the average schedule difficulty for each team
+    def calc_difficulty_cost(self):
+        difficulty_scores = []
+        for team in nfl_teams:
+            difficulty_scores.append(self.get_team_schedule_difficulty(team))
+    
+        arr = numpy.array(difficulty_scores)
+        return numpy.std(arr, axis=0) # Closer to 0 = better
+
+    def get_team_schedule_difficulty(self, team):
+        num_games = 0
+        total_difficulty = 0
+
+        for date in self.sched.keys():
+            game = self.get_game(date, team)
+            if game != None:
+                opponent = game.get_opposing_team(team)
+                if opponent != None:
+                    num_games += 1
+                    total_difficulty += 0.2 * TEAM_DIFFICULTY_DICT[opponent] # Normalize to [0, 1]
+
+        if num_games == 0: # Team doesn't exist in schedule
+            return None
+        else:
+            return float(total_difficulty) / float(num_games)
+
     def __str__(self):
         string = ""
         for day in self.sched:
@@ -136,6 +184,26 @@ class Game():
     def __str__(self):
         return self.home_team + ", " + self.away_team \
             + ", " + str(self.game_time) + ", " + self.broadcaster
+
+# Utilities
+
+def generate_difficulty_dict():
+    team_difficulty_dict = {}
+
+    basepath = os.path.dirname(__file__)
+    filepath = os.path.abspath(os.path.join(basepath, "..", "data", "NFL.csv"))
+    with open(filepath) as nfl_data:
+        csv_reader = csv.reader(nfl_data)
+        for row in csv_reader:
+            if row[0] != "Team Name": # Skip title row
+                team_name = row[0]
+                team_difficulty = float(row[6])
+
+                team_difficulty_dict[team_name] = team_difficulty
+
+    return team_difficulty_dict
+
+TEAM_DIFFICULTY_DICT = generate_difficulty_dict()
 
 # Sample on how to call methods
 #nfl_schedule = generate_random_schedule(game_days, nfl_teams)

@@ -4,7 +4,6 @@ from flask_cors import CORS
 
 from src.schedule import *
 from src.schedule_optimizer import *
-from src.schedule_score import *
 
 app = Flask(__name__)
 CORS(app)
@@ -26,7 +25,7 @@ def generate_schedule():
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
-    # app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)
 
     #TESTING ONLY! Leave commented in production
-    app.run(host='127.0.0.1', port=port)
+    #app.run(host='127.0.0.1', port=port)

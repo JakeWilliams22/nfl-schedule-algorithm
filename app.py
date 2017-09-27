@@ -4,7 +4,6 @@ from flask_cors import CORS
 
 from src.schedule import *
 from src.schedule_optimizer import *
-from src.schedule_score import *
 
 app = Flask(__name__)
 CORS(app)

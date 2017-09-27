@@ -1,6 +1,5 @@
 from scipy import optimize
 from .schedule import *
-from .schedule_score import *
 
 # Generates a random schedule adhering to the following rules:
 def generate_random_schedule(game_days, teams):
@@ -35,20 +34,24 @@ class ScheduleTakeStep(object):
 def noop_min(fun, x0, args, **options):
     return optimize.OptimizeResult(x=x0, fun=fun(x0), success=True, nfev=1)
 
+# This function generates a score for the provided schedule in [0, 1]
+def score_schedule_cost(sched):
+    if sched == None:
+        return 0
+    else:
+        return sched.item(0).calculate_cost()
+
 #accept_test: A function to decide whether or not to accept the step (for validating rules maybe?)
 my_schedule_take_step = ScheduleTakeStep()
 initial_schedule = generate_random_schedule(game_days, nfl_teams)
 
 # Note: this function minimizes the cost (1 - score) of the schedule
 def optimize_schedule():
-    optimizer_result = optimize.basinhopping(schedule_cost, \
+    optimizer_result = optimize.basinhopping(score_schedule_cost, \
                                              initial_schedule, \
                                              minimizer_kwargs=dict(method=noop_min), \
                                              take_step=my_schedule_take_step)
     return optimizer_result.x.item(0)
-
-def schedule_cost(sched):
-    return 1 - score_schedule(sched.item(0))
 
 # DEBUG
 # nfl_schedule = optimize_schedule()

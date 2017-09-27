@@ -1,6 +1,5 @@
 from scipy import optimize
 from .schedule import *
-from .schedule_score import *
 
 # Generates a random schedule adhering to the following rules:
 def generate_random_schedule(game_days, teams):

@@ -80,7 +80,7 @@ def travel_score(sched):
     
     totalsList = travelTotals.values()
     totalsList = [x / (2830 * 16) for x in totalsList] #5423 is Max # of km between any two stadiums - Miami and Seattle
-    print (totalsList)
+
     return numpy.std(totalsList, axis = 0)
     
 # Returns the score of the difficulty of the schedule

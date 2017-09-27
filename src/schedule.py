@@ -74,6 +74,7 @@ def json_default(o):
 class Schedule:
     def __init__(self):
         self.sched = {}
+        self.opponentList = None
 
     def add_game(self, date, game):
         if date in self.sched.keys():
@@ -87,6 +88,24 @@ class Schedule:
                 return game
         return None
 
+    def getOpponentListForTeam(self,team):
+        if self.opponentList == None:
+            self.buildOpponentList()
+        return self.opponentList[team] if team in self.opponentList else None
+    
+    def buildOpponentList(self):
+        self.opponentList = {}
+        for week in self.sched:
+            for game in self.sched[week]:
+                home = game.home_team
+                away = game.away_team
+                if home not in self.opponentList:
+                    self.opponentList[home] = set()
+                if away not in self.opponentList:
+                    self.opponentList[away] = set()
+                self.opponentList[home].add(away)
+                self.opponentList[away].add(home)
+        
     def __str__(self):
         string = ""
         for day in self.sched:

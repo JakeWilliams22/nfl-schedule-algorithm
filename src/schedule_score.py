@@ -9,30 +9,24 @@ from .schedule import *
 
 # Utilities
 
+nfl_data = pd.read_csv('data/NFL.csv')
+
 #Calculates the distance between two teams' stadiums in km
 #Consider saving the results in a dict to save computation time (500 possible pairings)
+def readStadiumDistances(fileName):
+    stadiumDistances = pd.read_csv(fileName)
+    stadiumDistanceDict = {}
+    for i, row in stadiumDistances.iterrows():
+        teamTuple = (row['Team1'], row['Team2'])
+        stadiumDistanceDict[teamTuple] = row['Dist']
+    return stadiumDistanceDict
+ 
+stadiumDistances = readStadiumDistances('data/stadiumDistances.csv') 
+ 
 def travelDistance(data, team1, team2):
-    team1Lat = math.radians(data[data['Team Name'] == team1]['Latt'])
-    team2Lat = math.radians(data[data['Team Name'] == team2]['Latt'])
-    team1Long = math.radians(data[data['Team Name'] == team1]['Long'])
-    team2Long = math.radians(data[data['Team Name'] == team2]['Long'])
-    dlon = team2Long - team1Long
-    dlat = team2Lat - team1Lat
-    a = ((math.sin(dlat/2)) * (math.sin(dlat/2))) + math.cos(team1Lat) * math.cos(team2Lat) * ((math.sin(dlon/2)) * (math.sin(dlon/2)))
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    dist = 6373 * c #approximate radius of earth
-    if (dist > 5423):
-      print(data[data['Team Name'] == team1]['Latt'])
-      print(data[data['Team Name'] == team2]['Latt'])
-      print(data[data['Team Name'] == team1]['Long'])
-      print(data[data['Team Name'] == team2]['Long'])
-      print(team1)
-      print(team2)
-      print(dist)
-      print("\n")
-    return(dist)
-    
-    
+    teamTuple = (team1, team2)
+    return stadiumDistances[teamTuple]
+ 
 def generate_difficulty_dict():
     team_difficulty_dict = {}
 
@@ -67,7 +61,7 @@ def travel_score(sched):
     #TODO: Return a normalized score that is the standard deviation of the travel distances for each team
     if sched == None:
       return 0;
-    data = pd.read_csv('data/NFL.csv')
+    data = nfl_data
     travelTotals = {}
     
     for entry in data['Team Name']:

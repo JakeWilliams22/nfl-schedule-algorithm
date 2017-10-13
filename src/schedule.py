@@ -249,6 +249,15 @@ def travelDistance(data, team1, team2):
     teamTuple = (team1, team2)
     return stadiumDistances[teamTuple]
 
+def serialize_schedule(sched):
+    with open('data/schedule.json', 'w') as sched_file:
+        sched_file.write(json.dumps(sched, default=json_default))
+
+def load_schedule(sched):
+    with open('data/schedule.json', 'r') as sched_file:
+        data = sched_file.read()
+    return data
+
 # Sample on how to call methods
 #nfl_schedule = generate_random_schedule(game_days, nfl_teams)
 #print(json.dumps(nfl_schedule, default=json_default))

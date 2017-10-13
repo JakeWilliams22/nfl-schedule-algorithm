@@ -1,7 +1,7 @@
 from scipy import optimize
 from .schedule import *
-from .schedule_score import *
 import random
+import math
 
 # Generates a random schedule adhering to the following rules:
 def generate_random_schedule(game_days, teams):
@@ -123,7 +123,9 @@ def optimize_schedule():
                                              initial_schedule, \
                                              minimizer_kwargs=dict(method=noop_min), \
                                              take_step=my_schedule_take_step)
-    return optimizer_result.x.item(0)
+    sched = optimizer_result.x.item(0)
+    serialize_schedule(sched)
+    return sched
 
 # DEBUG
 # nfl_schedule = optimize_schedule()

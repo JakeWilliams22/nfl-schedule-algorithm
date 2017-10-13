@@ -1,6 +1,7 @@
 from datetime import *
 import random
 import json
+from collections import namedtuple
 import csv
 import os.path
 import numpy
@@ -82,11 +83,30 @@ def json_default(o):
 
 #Represents a schedule
 class Schedule:
-    def __init__(self):
-        self.sched = {}
+    #def __init__(self):
+    #    self.sched = {}
+    #    self.opponentList = None
+    #    self.difficulty_score = 0
+    #    self.travel_score = 0
+
+    # Constructor for loading from JSON
+    def __init__(self, sched = None, difficulty_score = None, travel_score = None):
+        if sched is None:
+            self.sched = {}
+        else:
+            self.sched = sched
+
+        if difficulty_score is None:
+            self.difficulty_score = 0
+        else:
+            self.difficulty_score = difficulty_score
+
+        if travel_score is None:
+            self.travel_score = 0
+        else:
+            self.travel_score = travel_score
+        
         self.opponentList = None
-        self.difficulty_score = 0
-        self.travel_score = 0
 
     def add_game(self, date, game):
         if date in self.sched.keys():
@@ -253,10 +273,24 @@ def serialize_schedule(sched):
     with open('data/schedule.json', 'w') as sched_file:
         sched_file.write(json.dumps(sched, default=json_default))
 
-def load_schedule(sched):
+def load_schedule():
     with open('data/schedule.json', 'r') as sched_file:
         data = sched_file.read()
     return data
+
+def json_to_sched(json_sched):
+    x = json.loads(json_sched)
+    sched = Schedule(**x)
+    sched_map = {}
+    for date_str, games in sched.sched.items():
+        date_key = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        sched_map[date_key] = []
+        for game_map in games:
+            game = Game(**game_map)
+            sched_map[date_key].append(game)
+
+    sched.sched = sched_map # Replace with the properly formatted sched
+    return sched
 
 # Sample on how to call methods
 #nfl_schedule = generate_random_schedule(game_days, nfl_teams)

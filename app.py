@@ -15,6 +15,8 @@ def hello():
 @app.route('/generate-optimized-schedule')
 def generate_optimized_schedule():
     nfl_schedule = optimize_schedule()
+    loaded_sched_text = load_schedule()
+    loaded_sched = json_to_sched(loaded_sched_text)
     return json.dumps(nfl_schedule, default=json_default)
 
 @app.route('/generate-schedule')

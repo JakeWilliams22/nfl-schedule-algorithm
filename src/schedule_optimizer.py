@@ -32,6 +32,19 @@ class ScheduleTakeStep(object):
         dates = list(sched.sched.keys())
         teams = list(nfl_teams)
         
+        # Change all unapproved games (Will only run on first optimization)
+        for date, games in sched.sched.items():
+            for game in games:
+                if game.approved == 2:
+                    team1 = game.home_team
+                    if random.random() > 0.5:
+                        team1 = game.away_team
+                    team2 = team1
+                    while team2 == team1: #Continue picking random numbers if we pick the same team twice
+                        team2 = teams[math.floor(random.random() * len(teams))]
+                    swapTeams(team1, team2, date, sched)
+                    game.approved = 0
+
         #Randomly decide how many weeks to alter
         numWeeksToChange = math.ceil(random.random() * len(sched.sched))
 
@@ -58,6 +71,10 @@ def swapTeams(team1, team2, week, sched):
     team1Home = game1.home_team == team1 if game1 != None else False
     game2 = sched.get_game(week, team2)
     team2Home = game2.home_team == team2 if game2 != None else False
+
+    if game1.approved == 1 or game2.approved == 2:
+        return False # Don't swap if one of the games has been approved
+
     if game1 == game2: #If the teams are playing eachother, swap who is home/away
         temp = game1.away_team
         game1.away_team = game2.home_team

@@ -4,7 +4,9 @@ import json
 import csv
 import os.path
 import numpy
-from .schedule_score import travel_score
+import pandas as pd
+
+#from .schedule_score import travel_score
 
 # This file contains code responsible for generating schedules
 
@@ -122,9 +124,32 @@ class Schedule:
 
         return (self.difficulty_cost + self.travel_cost) / 2.0
 
+    #####################################
+    # Travel Cost
+
     # Closer to 0 is better
     def calc_travel_cost(self):
-        return travel_score(self)
+        #TODO: Return a normalized score that is the standard deviation of the travel distances for each team
+        if self == None:
+            return 0
+        data = nfl_data
+        travelTotals = {}
+    
+        for entry in data['Team Name']:
+            travelTotals[entry] = 0
+      
+        for week in self.sched:
+            for game in self.sched[week]:
+                td = travelDistance(data, game.home_team, game.away_team)
+                travelTotals[game.away_team] += td
+    
+        totalsList = travelTotals.values()
+        totalsList = [x / (2830 * 16) for x in totalsList] #5423 is Max # of km between any two stadiums - Miami and Seattle
+
+        return numpy.std(totalsList, axis = 0)
+
+    #######################################
+    # Difficulty Cost
 
     # Closer to 0 is better
     # Returns the score of the difficulty of the schedule
@@ -167,11 +192,12 @@ class Game():
     possible_game_times = [13, 16, 20] # Possible hours of the day
     possible_broadcasters = ["NBC", "CBS", "FOX"]
     
-    def __init__(self, home_team, away_team, game_time, broadcaster):
+    def __init__(self, home_team, away_team, game_time, broadcaster, approved):
         self.home_team = home_team
         self.away_team = away_team
         self.game_time = game_time
         self.broadcaster = broadcaster
+        self.approved = approved # 0 - not set, 1 = approved, 2 = declined
 
     def get_opposing_team(self, team):
         if self.home_team == team:
@@ -204,6 +230,24 @@ def generate_difficulty_dict():
     return team_difficulty_dict
 
 TEAM_DIFFICULTY_DICT = generate_difficulty_dict()
+
+nfl_data = pd.read_csv('data/NFL.csv')
+
+#Calculates the distance between two teams' stadiums in km
+#Consider saving the results in a dict to save computation time (500 possible pairings)
+def readStadiumDistances(fileName):
+    stadiumDistances = pd.read_csv(fileName)
+    stadiumDistanceDict = {}
+    for i, row in stadiumDistances.iterrows():
+        teamTuple = (row['Team1'], row['Team2'])
+        stadiumDistanceDict[teamTuple] = row['Dist']
+    return stadiumDistanceDict
+ 
+stadiumDistances = readStadiumDistances('data/stadiumDistances.csv') 
+ 
+def travelDistance(data, team1, team2):
+    teamTuple = (team1, team2)
+    return stadiumDistances[teamTuple]
 
 # Sample on how to call methods
 #nfl_schedule = generate_random_schedule(game_days, nfl_teams)

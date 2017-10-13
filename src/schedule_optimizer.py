@@ -17,8 +17,8 @@ def generate_random_schedule(game_days, teams):
             broadcaster = random.choice(Game.possible_broadcasters)
             game_time = random.choice(Game.possible_game_times)
 
-            games.append(Game(home_team, away_team, game_time, broadcaster))
-            nfl_sched.add_game(day, Game(home_team, away_team, game_time, broadcaster))
+            games.append(Game(home_team, away_team, game_time, broadcaster, 0))
+            nfl_sched.add_game(day, Game(home_team, away_team, game_time, broadcaster, 0))
 
     return nfl_sched
 

@@ -5,7 +5,7 @@ from flask_cors import CORS
 from src.schedule import *
 from src.schedule_optimizer import *
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 CORS(app)
 
 @app.route('/')
@@ -17,6 +17,8 @@ def generate_optimized_schedule():
     nfl_schedule = optimize_schedule()
     loaded_sched_text = load_schedule()
     loaded_sched = json_to_sched(loaded_sched_text)
+    with open('data/schedule.json', 'w') as outfile:
+      json.dump(nfl_schedule, outfile, default=json_default)
     return json.dumps(nfl_schedule, default=json_default)
 
 @app.route('/generate-schedule')
@@ -24,6 +26,11 @@ def generate_schedule():
     nfl_schedule = generate_random_schedule(game_days, nfl_teams)
     return json.dumps(nfl_schedule, default=json_default)
 
+@app.route('/view-schedule')
+def view_schedule():
+  schedule = load_schedule()
+  return schedule
+    
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))

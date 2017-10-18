@@ -130,6 +130,86 @@ def score_schedule_cost(sched):
     else:
         return sched.item(0).calculate_cost()
 
+
+#Checks if team plays each of the other 3 teams in its division twice, 1 home and 1 away
+def localDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamDivision = sched.getDivisionForTeam(team)
+    counterHome = 0
+    counterAway = 0
+    for(int i = 0; i < len(teamSchedule); i++):
+        oppDivision1 = sched.getDivisionForTeam(teamSchedule[i][home])
+        oppDivision2 = sched.getDivisionForTeam(teamSchedule[i][away])
+        if teamSchedule[i][home] != team:
+            if oppDivision1 == teamDivision:
+                counterHome++;
+        if teamSchedule[i][away] != team:
+            if oppDivision2 == teamDivision:
+                counterAway++;
+
+
+    if counterHome == 3 && counterAway == 3:
+        return "Local Division Rule Met"
+    else:
+        return "Local Division Rule Failed"
+
+#Checks if team plays all 4 teams in a different division within the same conference, 2 home and 2 away
+def foreignDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamDivision = sched.getDivisionForTeam(team)
+    if teamDivision == "AFC East":
+        foreignDivision = random.choice([schedule.afc_teams_south, schedule.afc_teams_north, schedule.afc_teams_west])
+    elif teamDivision == "AFC South":
+        foreignDivision = random.choice([schedule.afc_teams_east, schedule.afc_teams_north, schedule.afc_teams_west])
+    elif teamDivision == "AFC North":
+        foreignDivision = random.choice([schedule.afc_teams_east, schedule.afc_teams_south, schedule.afc_teams_west])
+    elif teamDivision == "AFC West":
+        foreignDivision = random.choice([schedule.afc_teams_east, schedule.afc_teams_south, schedule.afc_teams_north])
+    elif teamDivision == "NFC East":
+        foreignDivision = random.choice([schedule.nfc_teams_south, schedule.nfc_teams_north, schedule.nfc_teams_west])
+    elif teamDivision == "NFC South":
+        foreignDivision = random.choice([schedule.nfc_teams_east, schedule.nfc_teams_north, schedule.nfc_teams_west])
+    elif teamDivision == "NFC North":
+        foreignDivision = random.choice([schedule.nfc_teams_east, schedule.nfc_teams_south, schedule.nfc_teams_west])
+    elif teamDivision == "NFC West":
+        foreignDivision = random.choice([schedule.nfc_teams_east, schedule.nfc_teams_south, schedule.nfc_teams_north])
+    
+    counterHome = 0
+    counterAway = 0
+    for(int i = 0; i < len(teamSchedule); i++):
+        if teamSchedule[i][home] in foreignDivision && teamSchedule[i][home] != team:
+            counterHome++
+        if teamSchedule[i][away] in foreignDivision && teamSchedule[i][away] != team:
+            counterAway++
+
+    if counterHome == 2 && counterAway == 2:
+        return "Foreign Division Rule Met"
+    else:
+        return "Foreign Division Rule Failed"
+
+#Checks if team plays all 4 teams in a division from the other conference, 2 home and 2 away
+def interconferenceDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamConference = sched.getConferenceForTeam(team)
+    if teamConference == "AFC":
+        interconferenceDivision = random.choice([schedule.nfc_teams_south, schedule.nfc_teams_north, schedule.nfc_teams_west, schedule.nfc_teams_east])
+    else:
+        interconferenceDivision = random.choice([schedule.afc_teams_south, schedule.afc_teams_north, schedule.afc_teams_west, schedule.afc_teams_east])
+
+    counterHome = 0
+    counterAway = 0
+    for(int i = 0; i < len(teamSchedule); i++):
+        if teamSchedule[i][home] in interconferenceDivision && teamSchedule[i][home] != team:
+            counterHome++
+        if teamSchedule[i][away] in interconferenceDivision && teamSchedule[i][away] != team:
+            counterAway++
+
+    if counterHome == 2 && counterAway == 2:
+        return "Interconference Division Rule Met"
+    else:
+        return "Interconference Division Rule Failed"
+
+
 #accept_test: A function to decide whether or not to accept the step (for validating rules maybe?)
 my_schedule_take_step = ScheduleTakeStep()
 initial_schedule = generate_random_schedule(game_days, nfl_teams)

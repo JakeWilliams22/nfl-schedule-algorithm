@@ -124,6 +124,30 @@ class Schedule:
         if self.opponentList == None:
             self.buildOpponentList()
         return self.opponentList[team] if team in self.opponentList else None
+
+    def getDivisionForTeam(self,team):
+        if team in afc_teams_east:
+            return "AFC East"
+        elif team in afc_teams_west:
+            return "AFC West"
+        elif team in afc_teams_north:
+            return "AFC North"
+        elif team in afc_teams_south:
+            return "AFC South"
+        elif team in nfc_teams_east:
+            return "NFC East"
+        elif team in nfc_teams_west:
+            return "NFC West"
+        elif team in nfc_teams_north:
+            return "NFC North"
+        elif team in nfc_teams_south:
+            return "NFC South"
+
+    def getConferenceForTeam(self, team):
+        if team in nfc_teams:
+            return "NFC"
+        else:
+            return "AFC"
     
     def buildOpponentList(self):
         self.opponentList = {}

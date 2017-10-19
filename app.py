@@ -14,15 +14,15 @@ def hello():
 
 @app.route('/generate-optimized-schedule', methods=["GET", "POST"])
 def generate_optimized_schedule():
-    if flask.request.method == "GET":
+    if Flask.request.method == "GET":
         nfl_schedule = optimize_schedule()
         loaded_sched_text = load_schedule()
         loaded_sched = json_to_sched(loaded_sched_text)
         with open('data/schedule.json', 'w') as outfile:
           json.dump(nfl_schedule, outfile, default=json_default)
         return json.dumps(nfl_schedule, default=json_default)
-    elif flask.request.method == "POST":
-        uploadedSched = flask.request.values.get('schedule')
+    elif Flask.request.method == "POST":
+        uploadedSched = Flask.request.values.get('schedule')
         nfl_schedule = optimize_schedule(json_to_schedule(uploadedSched))
         with open('data/schedule.json', 'w') as outfile:
           json.dump(nfl_schedule, outfile, default=json_default)

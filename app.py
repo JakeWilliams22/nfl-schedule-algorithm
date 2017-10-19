@@ -1,11 +1,11 @@
 import os
-from flask import Flask
+import flask as Flask
 from flask_cors import CORS
 
 from src.schedule import *
 from src.schedule_optimizer import *
 
-app = Flask(__name__, static_url_path='')
+app = Flask.Flask(__name__, static_url_path='')
 CORS(app)
 
 @app.route('/')

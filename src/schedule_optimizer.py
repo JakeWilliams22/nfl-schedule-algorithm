@@ -136,6 +136,7 @@ initial_schedule = generate_random_schedule(game_days, nfl_teams)
 
 # Note: this function minimizes the cost (1 - score) of the schedule
 def optimize_schedule(schedule = None):
+    global initial_schedule
     if schedule != None:
         initial_schedule = schedule
     optimizer_result = optimize.basinhopping(score_schedule_cost, \

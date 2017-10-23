@@ -229,7 +229,8 @@ class Game():
 
     def __str__(self):
         return self.home_team + ", " + self.away_team \
-            + ", " + str(self.game_time) + ", " + self.broadcaster
+            + ", " + str(self.game_time) + ", " \
+            + self.broadcaster + ", " + self.approved
 
 # Utilities
 

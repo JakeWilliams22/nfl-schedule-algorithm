@@ -1,0 +1,6 @@
+Flask
+flask-cors
+scipy
+peakutils
+numpy
+pandas

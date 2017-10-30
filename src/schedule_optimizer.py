@@ -17,9 +17,7 @@ def generate_random_schedule(game_days, teams):
             broadcaster = random.choice(Game.possible_broadcasters)
             game_time = random.choice(Game.possible_game_times)
 
-            newGame = Game(home_team, away_team, game_time, broadcaster, 0)
-            newGame.approved = 0
-            games.append(newGame)
+            games.append(Game(home_team, away_team, game_time, broadcaster, 0))
             nfl_sched.add_game(day, Game(home_team, away_team, game_time, broadcaster, 0))
 
     return nfl_sched
@@ -37,7 +35,7 @@ class ScheduleTakeStep(object):
         # Change all unapproved games (Will only run on first optimization)
         for date, games in sched.sched.items():
             for game in games:
-                if game.approved == -1:
+                if game.approved == 2:
                     team1 = game.home_team
                     if random.random() > 0.5:
                         team1 = game.away_team
@@ -74,7 +72,7 @@ def swapTeams(team1, team2, week, sched):
     game2 = sched.get_game(week, team2)
     team2Home = game2.home_team == team2 if game2 != None else False
 
-    if game1.approved == 1 or game2.approved == 1:
+    if game1.approved == 1 or game2.approved == 2:
         return False # Don't swap if one of the games has been approved
 
     if game1 == game2: #If the teams are playing eachother, swap who is home/away
@@ -132,21 +130,98 @@ def score_schedule_cost(sched):
     else:
         return sched.item(0).calculate_cost()
 
+
+#Checks if team plays each of the other 3 teams in its division twice, 1 home and 1 away
+def localDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamDivision = sched.getDivisionForTeam(team)
+    counterHome = 0
+    counterAway = 0
+    for i in range(0,len(teamSchedule)):
+        oppDivision1 = sched.getDivisionForTeam(teamSchedule[i][home])
+        oppDivision2 = sched.getDivisionForTeam(teamSchedule[i][away])
+        if teamSchedule[i][home] != team:
+            if oppDivision1 == teamDivision:
+                counterHome = counterHome + 1
+        if teamSchedule[i][away] != team:
+            if oppDivision2 == teamDivision:
+                counterAway = counterAway + 1
+
+
+    if counterHome == 3 and counterAway == 3:
+        return 1
+    else:
+        return 0
+
+#Checks if team plays all 4 teams in a different division within the same conference, 2 home and 2 away
+def foreignDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamDivision = sched.getDivisionForTeam(team)
+    if teamDivision == "AFC East":
+        foreignDivision = random.choice([schedule.afc_teams_south, schedule.afc_teams_north, schedule.afc_teams_west])
+    elif teamDivision == "AFC South":
+        foreignDivision = random.choice([schedule.afc_teams_east, schedule.afc_teams_north, schedule.afc_teams_west])
+    elif teamDivision == "AFC North":
+        foreignDivision = random.choice([schedule.afc_teams_east, schedule.afc_teams_south, schedule.afc_teams_west])
+    elif teamDivision == "AFC West":
+        foreignDivision = random.choice([schedule.afc_teams_east, schedule.afc_teams_south, schedule.afc_teams_north])
+    elif teamDivision == "NFC East":
+        foreignDivision = random.choice([schedule.nfc_teams_south, schedule.nfc_teams_north, schedule.nfc_teams_west])
+    elif teamDivision == "NFC South":
+        foreignDivision = random.choice([schedule.nfc_teams_east, schedule.nfc_teams_north, schedule.nfc_teams_west])
+    elif teamDivision == "NFC North":
+        foreignDivision = random.choice([schedule.nfc_teams_east, schedule.nfc_teams_south, schedule.nfc_teams_west])
+    elif teamDivision == "NFC West":
+        foreignDivision = random.choice([schedule.nfc_teams_east, schedule.nfc_teams_south, schedule.nfc_teams_north])
+    
+    counterHome = 0
+    counterAway = 0
+    for i in range(0,len(teamSchedule)):
+        if teamSchedule[i][home] in foreignDivision and teamSchedule[i][home] != team:
+            counterHome = counterHome + 1
+        if teamSchedule[i][away] in foreignDivision and teamSchedule[i][away] != team:
+            counterAway = counterAway + 1
+
+    if counterHome == 2 and counterAway == 2:
+        return 1
+    else:
+        return 0
+
+#Checks if team plays all 4 teams in a division from the other conference, 2 home and 2 away
+def interconferenceDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamConference = sched.getConferenceForTeam(team)
+    if teamConference == "AFC":
+        interconferenceDivision = random.choice([schedule.nfc_teams_south, schedule.nfc_teams_north, schedule.nfc_teams_west, schedule.nfc_teams_east])
+    else:
+        interconferenceDivision = random.choice([schedule.afc_teams_south, schedule.afc_teams_north, schedule.afc_teams_west, schedule.afc_teams_east])
+
+    counterHome = 0
+    counterAway = 0
+    for i in range(0,len(teamSchedule)):
+        if teamSchedule[i][home] in interconferenceDivision and teamSchedule[i][home] != team:
+            counterHome = counterHome + 1
+        if teamSchedule[i][away] in interconferenceDivision and teamSchedule[i][away] != team:
+            counterAway = counterAway + 1
+
+    if counterHome == 2 and counterAway == 2:
+        return 1
+    else:
+        return 0
+
+
 #accept_test: A function to decide whether or not to accept the step (for validating rules maybe?)
 my_schedule_take_step = ScheduleTakeStep()
 initial_schedule = generate_random_schedule(game_days, nfl_teams)
 
 # Note: this function minimizes the cost (1 - score) of the schedule
-def optimize_schedule(schedule = None):
-    global initial_schedule
-    if schedule != None:
-        initial_schedule = schedule
+def optimize_schedule():
     optimizer_result = optimize.basinhopping(score_schedule_cost, \
                                              initial_schedule, \
                                              minimizer_kwargs=dict(method=noop_min), \
                                              take_step=my_schedule_take_step)
     sched = optimizer_result.x.item(0)
-    serialize_schedule(sched) # Used for separate generate and get calls if needed (timeout)
+    serialize_schedule(sched)
     return sched
 
 # DEBUG

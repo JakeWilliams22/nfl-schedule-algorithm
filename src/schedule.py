@@ -6,6 +6,7 @@ import csv
 import os.path
 import numpy
 import pandas as pd
+from schedule_optimizer.py import *
 
 #from .schedule_score import travel_score
 
@@ -72,6 +73,7 @@ def json_default(o):
         output = {}
         output["difficulty_score"] = o.difficulty_cost
         output["travel_score"] = o.travel_cost
+        output["rule_score"] = o.rule_cost
         str_sched = {}
         for key in o.sched.keys():
             str_sched[str(key)] = o.sched[key]
@@ -90,7 +92,7 @@ class Schedule:
     #    self.travel_score = 0
 
     # Constructor for loading from JSON
-    def __init__(self, sched = None, difficulty_score = None, travel_score = None):
+    def __init__(self, sched = None, difficulty_score = None, travel_score = None, rule_score = None):
         if sched is None:
             self.sched = {}
         else:
@@ -105,6 +107,9 @@ class Schedule:
             self.travel_score = 0
         else:
             self.travel_score = travel_score
+
+        if rule_score is None:
+            self.rule_score = 0
         
         self.opponentList = None
 
@@ -124,6 +129,30 @@ class Schedule:
         if self.opponentList == None:
             self.buildOpponentList()
         return self.opponentList[team] if team in self.opponentList else None
+
+    def getDivisionForTeam(self,team):
+        if team in afc_teams_east:
+            return "AFC East"
+        elif team in afc_teams_west:
+            return "AFC West"
+        elif team in afc_teams_north:
+            return "AFC North"
+        elif team in afc_teams_south:
+            return "AFC South"
+        elif team in nfc_teams_east:
+            return "NFC East"
+        elif team in nfc_teams_west:
+            return "NFC West"
+        elif team in nfc_teams_north:
+            return "NFC North"
+        elif team in nfc_teams_south:
+            return "NFC South"
+
+    def getConferenceForTeam(self, team):
+        if team in nfc_teams:
+            return "NFC"
+        else:
+            return "AFC"
     
     def buildOpponentList(self):
         self.opponentList = {}
@@ -141,8 +170,22 @@ class Schedule:
     def calculate_cost(self):
         self.difficulty_cost = self.calc_difficulty_cost()
         self.travel_cost = self.calc_travel_cost()
+        self.rule_cost = self.calc_rule_cost()
 
-        return (self.difficulty_cost + self.travel_cost) / 2.0
+        return (self.difficulty_cost * 0.2 + self.travel_cost * 0.2 + self.rule_cost * 0.6)
+
+    def calc_rule_cost(self):
+        if self == None:
+            return 1
+
+        for entry in data['Team Name']:
+            x = localDivisionRule(entry)
+            y = foreignDivisionRule(entry)
+            z = interconferenceDivisionRule(entry)
+            if x == 1 and y == 1 and z == 1:
+                return 1 
+            else:
+                return 0
 
     #####################################
     # Travel Cost
@@ -229,8 +272,7 @@ class Game():
 
     def __str__(self):
         return self.home_team + ", " + self.away_team \
-            + ", " + str(self.game_time) + ", " \
-            + self.broadcaster + ", " + str(self.approved)
+            + ", " + str(self.game_time) + ", " + self.broadcaster
 
 # Utilities
 

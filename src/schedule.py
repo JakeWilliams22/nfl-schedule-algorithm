@@ -6,7 +6,7 @@ import csv
 import os.path
 import numpy
 import pandas as pd
-from schedule_optimizer.py import *
+# from schedule_optimizer.py import *
 
 #from .schedule_score import travel_score
 
@@ -83,6 +83,7 @@ def json_default(o):
     if isinstance(o, Game):
         return o.__dict__
 
+        
 #Represents a schedule
 class Schedule:
     #def __init__(self):
@@ -274,6 +275,85 @@ class Game():
         return self.home_team + ", " + self.away_team \
             + ", " + str(self.game_time) + ", " + self.broadcaster
 
+
+#Checks if team plays each of the other 3 teams in its division twice, 1 home and 1 away
+def localDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamDivision = sched.getDivisionForTeam(team)
+    counterHome = 0
+    counterAway = 0
+    for i in range(0,len(teamSchedule)):
+        oppDivision1 = sched.getDivisionForTeam(teamSchedule[i][home])
+        oppDivision2 = sched.getDivisionForTeam(teamSchedule[i][away])
+        if teamSchedule[i][home] != team:
+            if oppDivision1 == teamDivision:
+                counterHome = counterHome + 1
+        if teamSchedule[i][away] != team:
+            if oppDivision2 == teamDivision:
+                counterAway = counterAway + 1
+
+
+    if counterHome == 3 and counterAway == 3:
+        return 1
+    else:
+        return 0
+
+#Checks if team plays all 4 teams in a different division within the same conference, 2 home and 2 away
+def foreignDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamDivision = sched.getDivisionForTeam(team)
+    if teamDivision == "AFC East":
+        foreignDivision = random.choice([afc_teams_south, afc_teams_north, afc_teams_west])
+    elif teamDivision == "AFC South":
+        foreignDivision = random.choice([afc_teams_east, afc_teams_north, afc_teams_west])
+    elif teamDivision == "AFC North":
+        foreignDivision = random.choice([afc_teams_east, afc_teams_south, afc_teams_west])
+    elif teamDivision == "AFC West":
+        foreignDivision = random.choice([afc_teams_east, afc_teams_south, afc_teams_north])
+    elif teamDivision == "NFC East":
+        foreignDivision = random.choice([nfc_teams_south, nfc_teams_north, nfc_teams_west])
+    elif teamDivision == "NFC South":
+        foreignDivision = random.choice([nfc_teams_east, nfc_teams_north, nfc_teams_west])
+    elif teamDivision == "NFC North":
+        foreignDivision = random.choice([nfc_teams_east, nfc_teams_south, nfc_teams_west])
+    elif teamDivision == "NFC West":
+        foreignDivision = random.choice([nfc_teams_east, nfc_teams_south, nfc_teams_north])
+    
+    counterHome = 0
+    counterAway = 0
+    for i in range(0,len(teamSchedule)):
+        if teamSchedule[i][home] in foreignDivision and teamSchedule[i][home] != team:
+            counterHome = counterHome + 1
+        if teamSchedule[i][away] in foreignDivision and teamSchedule[i][away] != team:
+            counterAway = counterAway + 1
+
+    if counterHome == 2 and counterAway == 2:
+        return 1
+    else:
+        return 0
+
+#Checks if team plays all 4 teams in a division from the other conference, 2 home and 2 away
+def interconferenceDivisionRule(team):
+    teamSchedule = sched.getOpponentListForTeam(team)
+    teamConference = sched.getConferenceForTeam(team)
+    if teamConference == "AFC":
+        interconferenceDivision = random.choice([nfc_teams_south, nfc_teams_north, nfc_teams_west, nfc_teams_east])
+    else:
+        interconferenceDivision = random.choice([afc_teams_south, afc_teams_north, afc_teams_west, afc_teams_east])
+
+    counterHome = 0
+    counterAway = 0
+    for i in range(0,len(teamSchedule)):
+        if teamSchedule[i][home] in interconferenceDivision and teamSchedule[i][home] != team:
+            counterHome = counterHome + 1
+        if teamSchedule[i][away] in interconferenceDivision and teamSchedule[i][away] != team:
+            counterAway = counterAway + 1
+
+    if counterHome == 2 and counterAway == 2:
+        return 1
+    else:
+        return 0
+
 # Utilities
 
 def generate_difficulty_dict():
@@ -313,11 +393,11 @@ def travelDistance(data, team1, team2):
     return stadiumDistances[teamTuple]
 
 def serialize_schedule(sched):
-    with open('data/schedule.json', 'w') as sched_file:
+    with open('data/json', 'w') as sched_file:
         sched_file.write(json.dumps(sched, default=json_default))
 
 def load_schedule():
-    with open('data/schedule.json', 'r') as sched_file:
+    with open('data/json', 'r') as sched_file:
         data = sched_file.read()
     return data
 

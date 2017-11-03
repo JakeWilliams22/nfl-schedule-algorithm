@@ -181,9 +181,9 @@ class Schedule:
 
         data = nfl_data
         for entry in data['Team Name']:
-            x = localDivisionRule(entry)
-            y = foreignDivisionRule(entry)
-            z = interconferenceDivisionRule(entry)
+            x = localDivisionRule(self, entry)
+            y = foreignDivisionRule(self, entry)
+            z = interconferenceDivisionRule(self, entry)
             if x == 1 and y == 1 and z == 1:
                 return 1 
             else:
@@ -278,7 +278,7 @@ class Game():
 
 
 #Checks if team plays each of the other 3 teams in its division twice, 1 home and 1 away
-def localDivisionRule(team):
+def localDivisionRule(sched, team):
     teamSchedule = sched.getOpponentListForTeam(team)
     teamDivision = sched.getDivisionForTeam(team)
     counterHome = 0
@@ -300,7 +300,7 @@ def localDivisionRule(team):
         return 0
 
 #Checks if team plays all 4 teams in a different division within the same conference, 2 home and 2 away
-def foreignDivisionRule(team):
+def foreignDivisionRule(sched, team):
     teamSchedule = sched.getOpponentListForTeam(team)
     teamDivision = sched.getDivisionForTeam(team)
     if teamDivision == "AFC East":
@@ -334,7 +334,7 @@ def foreignDivisionRule(team):
         return 0
 
 #Checks if team plays all 4 teams in a division from the other conference, 2 home and 2 away
-def interconferenceDivisionRule(team):
+def interconferenceDivisionRule(sched, team):
     teamSchedule = sched.getOpponentListForTeam(team)
     teamConference = sched.getConferenceForTeam(team)
     if teamConference == "AFC":

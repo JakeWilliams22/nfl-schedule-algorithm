@@ -179,6 +179,7 @@ class Schedule:
         if self == None:
             return 1
 
+        data = nfl_data
         for entry in data['Team Name']:
             x = localDivisionRule(entry)
             y = foreignDivisionRule(entry)

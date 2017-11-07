@@ -3,7 +3,7 @@ from .schedule import *
 import random
 import math
 
-# Generates a random schedule adhering to the following rules:
+# Generates a random schedule
 def generate_random_schedule(game_days, teams):
     nfl_sched = Schedule()
     teams = list(nfl_teams) # List of teams to match
@@ -130,12 +130,10 @@ def score_schedule_cost(sched):
     else:
         return sched.item(0).calculate_cost()
 
-
-#accept_test: A function to decide whether or not to accept the step (for validating rules maybe?)
 my_schedule_take_step = ScheduleTakeStep()
 initial_schedule = generate_random_schedule(game_days, nfl_teams)
 
-# Note: this function minimizes the cost (1 - score) of the schedule
+# Note: this function minimizes the cost (1 - score) of the schedule using the Basin Hopping algorithm
 def optimize_schedule():
     optimizer_result = optimize.basinhopping(score_schedule_cost, \
                                              initial_schedule, \

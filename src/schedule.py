@@ -12,6 +12,8 @@ import pandas as pd
 
 # This file contains code responsible for generating schedules
 
+""" Static Data """
+
 # NFL Team Names
 afc_teams_east =  ["Buffalo Bills",
                    "Miami Dolphins",
@@ -59,13 +61,16 @@ nfc_teams = nfc_teams_east + nfc_teams_north + nfc_teams_south + nfc_teams_west
 nfl_teams = afc_teams + nfc_teams
 
 def generate_game_days(start_date):
+    num_weeks = 16
     game_days = []
-    for i in range(16):
+    for i in range(num_weeks):
         game_days.append(start_date)
         start_date += timedelta(weeks=1)
     return game_days
         
 game_days = generate_game_days(datetime(2018, 10, 6))
+
+""" JSON Serializer """
 
 # Converts certain objects to JSON for serialization
 def json_default(o):
@@ -74,23 +79,21 @@ def json_default(o):
         output["difficulty_score"] = o.difficulty_cost
         output["travel_score"] = o.travel_cost
         output["rule_score"] = o.rule_cost
+
+        # Change sched array to have string keys for JSON compatibility
         str_sched = {}
         for key in o.sched.keys():
             str_sched[str(key)] = o.sched[key]
         output["sched"] = str_sched
+
         return output
     
     if isinstance(o, Game):
         return o.__dict__
 
         
-#Represents a schedule
+""" Schedule """
 class Schedule:
-    #def __init__(self):
-    #    self.sched = {}
-    #    self.opponentList = None
-    #    self.difficulty_score = 0
-    #    self.travel_score = 0
 
     # Constructor for loading from JSON
     def __init__(self, sched = None, difficulty_score = None, travel_score = None, rule_score = None):
@@ -167,13 +170,19 @@ class Schedule:
                     self.opponentList[away] = set()
                 self.opponentList[home].add(away)
                 self.opponentList[away].add(home)
-        
+
+    """ Cost functions for schedule """
+
     def calculate_cost(self):
         self.difficulty_cost = self.calc_difficulty_cost()
         self.travel_cost = self.calc_travel_cost()
         self.rule_cost = self.calc_rule_cost()
 
+        # Weight the score to make rules most important
         return (self.difficulty_cost * 0.2 + self.travel_cost * 0.2 + self.rule_cost * 0.6)
+
+    #####################################
+    # Rule Cost
 
     def calc_rule_cost(self):
         if self == None:
@@ -194,7 +203,6 @@ class Schedule:
 
     # Closer to 0 is better
     def calc_travel_cost(self):
-        #TODO: Return a normalized score that is the standard deviation of the travel distances for each team
         if self == None:
             return 0
         data = nfl_data
@@ -252,7 +260,7 @@ class Schedule:
                 string += "\t" + str(game) + "\n"
         return string
 
-# Represents a game
+""" Game """
 class Game():
     possible_game_times = [13, 16, 20] # Possible hours of the day
     possible_broadcasters = ["NBC", "CBS", "FOX"]
@@ -298,6 +306,8 @@ def localDivisionRule(sched, team):
         return 1
     else:
         return 0
+
+""" Helper functions for calculating rule cost of schedule """
 
 #Checks if team plays all 4 teams in a different division within the same conference, 2 home and 2 away
 def foreignDivisionRule(sched, team):
@@ -355,7 +365,7 @@ def interconferenceDivisionRule(sched, team):
     else:
         return 0
 
-# Utilities
+""" Utilities """
 
 def generate_difficulty_dict():
     team_difficulty_dict = {}
@@ -393,6 +403,8 @@ def travelDistance(data, team1, team2):
     teamTuple = (team1, team2)
     return stadiumDistances[teamTuple]
 
+""" Functions to serialize and load schedule """
+
 def serialize_schedule(sched):
     with open('data/json', 'w') as sched_file:
         sched_file.write(json.dumps(sched, default=json_default))
@@ -405,6 +417,8 @@ def load_schedule():
 def json_to_sched(json_sched):
     x = json.loads(json_sched)
     sched = Schedule(**x)
+
+    # Need to convert the string key schedule into a datetime key schedule
     sched_map = {}
     for date_str, games in sched.sched.items():
         date_key = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")

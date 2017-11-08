@@ -129,10 +129,14 @@ class Schedule:
                 return game
         return None
 
+    global getOpponentListForTeam
+
     def getOpponentListForTeam(self,team):
         if self.opponentList == None:
             self.buildOpponentList()
         return self.opponentList[team] if team in self.opponentList else None
+
+    global getDivisionForTeam
 
     def getDivisionForTeam(self,team):
         if team in afc_teams_east:
@@ -151,6 +155,8 @@ class Schedule:
             return "NFC North"
         elif team in nfc_teams_south:
             return "NFC South"
+
+    global getConferenceForTeam
 
     def getConferenceForTeam(self, team):
         if team in nfc_teams:
@@ -188,15 +194,18 @@ class Schedule:
         if self == None:
             return 1
 
+        counter = 0
         data = nfl_data
         for entry in data['Team Name']:
             x = localDivisionRule(self, entry)
             y = foreignDivisionRule(self, entry)
             z = interconferenceDivisionRule(self, entry)
             if x == 1 and y == 1 and z == 1:
-                return 1 
-            else:
-                return 0
+                counter = counter + 1
+        if counter == 32:
+            return 1
+        else:
+            return 0
 
     #####################################
     # Travel Cost
@@ -286,23 +295,16 @@ class Game():
 
 
 #Checks if team plays each of the other 3 teams in its division twice, 1 home and 1 away
-def localDivisionRule(sched, team):
-    teamSchedule = sched.getOpponentListForTeam(team)
-    teamDivision = sched.getDivisionForTeam(team)
-    counterHome = 0
-    counterAway = 0
-    for i in range(0,len(teamSchedule)):
-        oppDivision1 = sched.getDivisionForTeam(teamSchedule[i][home])
-        oppDivision2 = sched.getDivisionForTeam(teamSchedule[i][away])
-        if teamSchedule[i][home] != team:
-            if oppDivision1 == teamDivision:
-                counterHome = counterHome + 1
-        if teamSchedule[i][away] != team:
-            if oppDivision2 == teamDivision:
-                counterAway = counterAway + 1
-
-
-    if counterHome == 3 and counterAway == 3:
+def localDivisionRule(self, team):
+    teamSchedule = getOpponentListForTeam(self,team)
+    teamDivision = getDivisionForTeam(self, team)
+    counter = 0
+    testing = list(teamSchedule)[0]
+    for i in range(0,len(list(teamSchedule))):
+        oppDivision = getDivisionForTeam(self,list(teamSchedule)[i])
+        if teamDivision == oppDivision:
+            counter = counter + 1
+    if counter == 3:
         return 1
     else:
         return 0
@@ -310,9 +312,10 @@ def localDivisionRule(sched, team):
 """ Helper functions for calculating rule cost of schedule """
 
 #Checks if team plays all 4 teams in a different division within the same conference, 2 home and 2 away
-def foreignDivisionRule(sched, team):
-    teamSchedule = sched.getOpponentListForTeam(team)
-    teamDivision = sched.getDivisionForTeam(team)
+def foreignDivisionRule(self, team):
+    teamSchedule = getOpponentListForTeam(self,team)
+    teamDivision = getDivisionForTeam(self, team)
+    testing = list(teamSchedule)[0]
     if teamDivision == "AFC East":
         foreignDivision = random.choice([afc_teams_south, afc_teams_north, afc_teams_west])
     elif teamDivision == "AFC South":
@@ -329,41 +332,32 @@ def foreignDivisionRule(sched, team):
         foreignDivision = random.choice([nfc_teams_east, nfc_teams_south, nfc_teams_west])
     elif teamDivision == "NFC West":
         foreignDivision = random.choice([nfc_teams_east, nfc_teams_south, nfc_teams_north])
-    
-    counterHome = 0
-    counterAway = 0
-    for i in range(0,len(teamSchedule)):
-        if teamSchedule[i][home] in foreignDivision and teamSchedule[i][home] != team:
-            counterHome = counterHome + 1
-        if teamSchedule[i][away] in foreignDivision and teamSchedule[i][away] != team:
-            counterAway = counterAway + 1
-
-    if counterHome == 2 and counterAway == 2:
+    counter = 0
+    for team in foreignDivision:
+        if team in teamSchedule:
+            counter = counter + 1
+    if counter == 4:
         return 1
     else:
         return 0
 
 #Checks if team plays all 4 teams in a division from the other conference, 2 home and 2 away
-def interconferenceDivisionRule(sched, team):
-    teamSchedule = sched.getOpponentListForTeam(team)
-    teamConference = sched.getConferenceForTeam(team)
+def interconferenceDivisionRule(self, team):
+    teamSchedule = getOpponentListForTeam(self,team)
+    teamConference = getConferenceForTeam(self, team)
     if teamConference == "AFC":
         interconferenceDivision = random.choice([nfc_teams_south, nfc_teams_north, nfc_teams_west, nfc_teams_east])
     else:
         interconferenceDivision = random.choice([afc_teams_south, afc_teams_north, afc_teams_west, afc_teams_east])
-
-    counterHome = 0
-    counterAway = 0
-    for i in range(0,len(teamSchedule)):
-        if teamSchedule[i][home] in interconferenceDivision and teamSchedule[i][home] != team:
-            counterHome = counterHome + 1
-        if teamSchedule[i][away] in interconferenceDivision and teamSchedule[i][away] != team:
-            counterAway = counterAway + 1
-
-    if counterHome == 2 and counterAway == 2:
-        return 1
+    counter = 0
+    for team in interconferenceDivision:
+        if team in teamSchedule:
+            counter = counter + 1
+    if counter == 4:
+        return 1 
     else:
         return 0
+
 
 """ Utilities """
 

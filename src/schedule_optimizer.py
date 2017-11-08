@@ -53,12 +53,12 @@ class ScheduleTakeStep(object):
             dateIndexesToChange.add(math.floor(random.random() * len(sched.sched[dates[0]])))
             
         for dateIndex in dateIndexesToChange:
-            date = dates[dateIndex]
+            date = dates[int(dateIndex)]
             #Randomly pick two teams to swap
-            team1 = teams[math.floor(random.random() * len(teams))]
+            team1 = teams[int(math.floor(random.random() * len(teams)))]
             team2 = team1
             while team2 == team1: #Continue picking random numbers if we pick the same team twice
-                team2 = teams[math.floor(random.random() * len(teams))]
+                team2 = teams[int(math.floor(random.random() * len(teams)))]
             
             #Perform the actual swap - team 1 will now play team 2's opponent and vice versa
             swapTeams(team1, team2, date, sched)
@@ -96,8 +96,8 @@ def swapTeams(team1, team2, week, sched):
                 game2.away_team = team1
                 team2OldOpponent = game2.home_team
             #Add the remove team one's old opponent from it's opponent list, and do the same with team 2
-            team1Opponents = sched.getOpponentListForTeam(team1)
-            team2Opponents = sched.getOpponentListForTeam(team2)
+            team1Opponents = getOpponentListForTeam(sched,team1)
+            team2Opponents = getOpponentListForTeam(sched,team2)
             team1Opponents.discard(team1OldOpponent)
             team2Opponents.discard(team2OldOpponent)
             team1Opponents.add(team2OldOpponent)
@@ -109,8 +109,8 @@ def swapTeams(team1, team2, week, sched):
 #If team 1 is not already playing team 2's opponent at some point in the season AND
 #Team 2 is not playing team 1's opponent at some point in the season
 def swapWontViolateOpponentConstraint(game1, game2, team1Home, team2Home, team1, team2, sched):
-    team1Opponents = sched.getOpponentListForTeam(team1)
-    team2Opponents = sched.getOpponentListForTeam(team2)
+    team1Opponents = getOpponentListForTeam(sched,team1)
+    team2Opponents = getOpponentListForTeam(sched,team2)
     team1Opponent = game1.away_team if team1Home else  game1.away_team
     team2Opponent = game2.away_team if team2Home else game2.away_team
     

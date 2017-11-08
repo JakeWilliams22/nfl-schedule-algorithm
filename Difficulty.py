@@ -4,6 +4,10 @@ import math
 import schedule as schedule
 from datetime import *
 
+#This python file is only run once with NFL.csv to create difficulty levels of each team. It accesses NFL.csv to obtain past records of each team,
+#and sets the difficulty based on the function in this file. It then writes the difficulty levels for each team (1-5) back to the csv file, which 
+#is used later on to generate fair and balanced schedules for each team. 
+
 
 
 #92 is highest

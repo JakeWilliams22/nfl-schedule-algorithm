@@ -291,7 +291,7 @@ class Game():
 
     def __str__(self):
         return self.home_team + ", " + self.away_team \
-            + ", " + str(self.game_time) + ", " + self.broadcaster + ", " + self.approved
+            + ", " + str(self.game_time) + ", " + self.broadcaster + ", " + str(self.approved)
 
 
 #Checks if team plays each of the other 3 teams in its division twice, 1 home and 1 away

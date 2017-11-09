@@ -35,7 +35,7 @@ class ScheduleTakeStep(object):
         # Change all unapproved games (Will only run on first optimization)
         for date, games in sched.sched.items():
             for game in games:
-                if game.approved == 2:
+                if game.approved == -1:
                     team1 = game.home_team
                     if random.random() > 0.5:
                         team1 = game.away_team
@@ -72,7 +72,7 @@ def swapTeams(team1, team2, week, sched):
     game2 = sched.get_game(week, team2)
     team2Home = game2.home_team == team2 if game2 != None else False
 
-    if game1.approved == 1 or game2.approved == 2:
+    if game1.approved == 1 or game2.approved == 1:
         return False # Don't swap if one of the games has been approved
 
     if game1 == game2: #If the teams are playing eachother, swap who is home/away

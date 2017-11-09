@@ -34,7 +34,7 @@ def generate_optimized_schedule():
     elif Flask.request.method == "POST":
         uploadedSched = Flask.request.values.get('schedule')
         nfl_schedule = optimize_schedule(json_to_sched(uploadedSched))
-
+        print(nfl_schedule)
         # Serialize schedule for future access
         with open('data/schedule.json', 'w') as outfile:
             json.dump(nfl_schedule, outfile, default=json_default)
